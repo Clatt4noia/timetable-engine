@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "estado": "INFEASIBLE",
+    "mensaje": "El modelo es irresoluble. Las restricciones actuales chocan irremediablemente (ej. faltan profesores o espacio para la malla requerida).",
+    "estadisticas_solver": {
+      "tiempo_segundos": 2.0663659,
+      "ramas_exploradas": 29672,
+      "conflictos": 0
+    }
+  },
+  "asignaciones_lista": [],
+  "vista_secciones": {},
+  "vista_profesores": {}
+}

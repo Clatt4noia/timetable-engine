@@ -11,6 +11,8 @@ from engine.loader import (
 from utils.validators import validar_todo
 from engine.preprocessor import preprocesar
 from engine.model import construir_modelo
+from engine.solver import resolver_modelo
+from engine.exporter import exportar_resultados
  
  
 def main():
@@ -63,8 +65,17 @@ def main():
     modelo, variables_x = construir_modelo(datos_procesados)
     print(f"  Número de variables declaradas: {len(variables_x)}")
     
-    # Los siguientes módulos se irán añadiendo aquí:
-    # solver → exporter
+    dict_resultado = resolver_modelo(modelo, variables_x)
+    print(f"  Estado del Solver: {dict_resultado['estado']}")
+    print(f"  {dict_resultado['mensaje']}")
+    print(f"  Clases asignadas exitosamente: {len(dict_resultado['asignaciones'])}")
+    print(f"  Tiempo tomado: {dict_resultado['estadisticas']['tiempo_segundos']:.2f}s")
+    
+    ruta_salida = "data/output/horario_result.json"
+    print(f"\nExportando resultados a: {ruta_salida}")
+    exportar_resultados(dict_resultado, ruta_salida)
+    
+    print("\n--- ¡Motor de Búsqueda Finalizado con Éxito! ---")
  
  
 if __name__ == "__main__":
