@@ -4,27 +4,65 @@ import collections
 
 def exportar_resultados(resultados_solver: dict, ruta_salida: str) -> None:
     """
-    Toma los resultados puros del solver y los serializa a un archivo JSON.
-    Adicionalmente, reorganiza la lista plana de asignaciones en un árbol por secciones
-    y por profesor para que sea inmediato de consumir por un Frontend o por Django.
+    Toma los resultados puros de los bloques Z del solver y los desempaqueta para
+    serializarlos en formato plano a un archivo JSON (manteniendo la misma estructura
+    compatible previamente construida, slot por slot).
     """
-    # 1. Crear el árbol jerárquico
-    asignaciones_planas = resultados_solver.get("asignaciones", [])
+    # 1. Recuperamos los bloques maestros
+    bloques_planos = resultados_solver.get("asignaciones", [])
+    
+    ORDEN_DIAS = {
+        "Lunes": 1,
+        "Martes": 2,
+        "Miercoles": 3,
+        "Jueves": 4,
+        "Viernes": 5
+    }
+
+    # Desempaquetamos los bloques en slots individuales lineales (0-indexed base)
+    asignaciones_planas = []
+    for bloque in bloques_planos:
+        start_slot = bloque["slot_inicio"]
+        H = bloque["horas"]
+        for k in range(H):
+            # Clonamos la info base del bloque
+            slot_individual = {
+                "seccion_id": bloque["seccion_id"],
+                "curso_id": bloque["curso_id"],
+                "profesor_id": bloque["profesor_id"],
+                "dia": bloque["dia"],
+                "turno": bloque["turno"],
+                "slot": start_slot + k + 1  # Ajustado a 1-indexed directo
+            }
+            asignaciones_planas.append(slot_individual)
+
+    # Función de ordenamiento cronológico
+    def _sort_key_plana(clase):
+        sec = clase.get("seccion_id", "")
+        dia_idx = ORDEN_DIAS.get(clase.get("dia", ""), 99)
+        return (sec, dia_idx, clase.get("slot", 0))
+        
+    asignaciones_planas.sort(key=_sort_key_plana)
     
     # Agrupación 1: Por Sección
     horario_por_seccion = collections.defaultdict(list)
     # Agrupación 2: Por Profesor
     horario_por_profesor = collections.defaultdict(list)
-    
-    for asig in asignaciones_planas:
-        # Copiamos para no mutar el original en caso de múltiples llamadas
-        clase = dict(asig)
-        
+
+    def _clase_sort_key(clase):
+        dia_idx = ORDEN_DIAS.get(clase.get("dia", ""), 99)
+        return (dia_idx, clase.get("slot", 0))
+
+    for clase in asignaciones_planas:
         # Guardamos en la vista de Seccion
         horario_por_seccion[clase["seccion_id"]].append(clase)
         
         # Guardamos en la vista de Profesor
         horario_por_profesor[clase["profesor_id"]].append(clase)
+        
+    # Ordenar las clases de cada profesor 
+    for clases_prof in horario_por_profesor.values():
+        clases_prof.sort(key=_clase_sort_key)
         
     
     # Estructuramos el payload final

@@ -1,22 +1,14 @@
 from ortools.sat.python import cp_model
 
-def resolver_modelo(modelo: cp_model.CpModel, variables_x: dict, max_tiempo_segundos: int = 60) -> dict:
+def resolver_modelo(modelo: cp_model.CpModel, bloques_z: dict, max_tiempo_segundos: int = 60) -> dict:
     """
-    Ejecuta el resolver CP-SAT sobre el modelo generado y extrae los resultados.
-    
-    Args:
-        modelo: El objeto CpModel con las variables y restricciones
-        variables_x: El diccionario O(1) de las variables booleanas instanciadas
-        max_tiempo_segundos: Tiempo límite para la búsqueda profunda
-        
-    Returns:
-        Diccionario con un status de ejecución y la asignación resultante.
+    Ejecuta el resolver CP-SAT sobre el modelo modificado (basado en bloques contiguos) y extrae los resultados.
     """
     solver = cp_model.CpSolver()
     
     # Parámetros del solver
     solver.parameters.max_time_in_seconds = max_tiempo_segundos
-    # Permite que intente encontrar múltiples soluciones en paralelo para ser más rápido
+    # Permite que intente encontrar múltiples soluciones en paralelo
     solver.parameters.num_search_workers = 8
     
     print("\n--- Ejecutando Solver CP-SAT ---")
@@ -38,29 +30,31 @@ def resolver_modelo(modelo: cp_model.CpModel, variables_x: dict, max_tiempo_segu
         resultado["mensaje"] = "Se encontró la solución óptima del horario."
     elif status == cp_model.FEASIBLE:
         resultado["estado"] = "FEASIBLE"
-        resultado["mensaje"] = "Se encontró una solución válida, pero no está comprobado que sea la óptima absoluta bajo el límite de tiempo."
+        resultado["mensaje"] = "Se encontró una solución válida, pero no está comprobado que sea la óptima absoluta."
     elif status == cp_model.INFEASIBLE:
         resultado["estado"] = "INFEASIBLE"
-        resultado["mensaje"] = "El modelo es irresoluble. Las restricciones actuales chocan irremediablemente (ej. faltan profesores o espacio para la malla requerida)."
+        resultado["mensaje"] = "El modelo es irresoluble. Las restricciones actuales chocan irremediablemente."
         return resultado
     else:
         resultado["estado"] = "UNKNOWN"
         resultado["mensaje"] = "No se encontró solución antes de agotar el límite de tiempo."
         return resultado
 
-    # Si llegamos aquí, fue factible u óptimo. Extraer la solución:
+    # Extraer la solución en base a las variables "Z" (inicio de bloque)
     asignaciones_exitosas = []
-    for llave, variable in variables_x.items():
+    
+    # bloques_z llave: (s_id, c_id, p_id, dia, turno, start, H)
+    for llave, variable in bloques_z.items():
         if solver.BooleanValue(variable):
-            # llave es una tupla: (s_id, c_id, p_id, dia, turno, slot)
-            s_id, c_id, p_id, dia, turno, slot = llave
+            s_id, c_id, p_id, dia, turno, start, H = llave
             asignaciones_exitosas.append({
                 "seccion_id": s_id,
                 "curso_id": c_id,
                 "profesor_id": p_id,
                 "dia": dia,
                 "turno": turno,
-                "slot": slot
+                "slot_inicio": start,
+                "horas": H
             })
             
     resultado["asignaciones"] = asignaciones_exitosas

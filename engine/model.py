@@ -3,7 +3,7 @@ import collections
 
 def construir_modelo(datos_procesados: dict) -> tuple[cp_model.CpModel, dict]:
     """
-    Construye el modelo CP-SAT, genera el espacio booleano y añade las restricciones.
+    Construye el modelo CP-SAT usando Bloques de Variables contiguas.
     """
     model = cp_model.CpModel()
     
@@ -21,64 +21,74 @@ def construir_modelo(datos_procesados: dict) -> tuple[cp_model.CpModel, dict]:
     turnos = config["turnos"]
     slots_por_turno = config["slots_por_turno"]
 
-    # Diccionario para almacenar las variables creadas
-    x = {}
+    # Diccionario para almacenar las variables maestras de bloque
+    bloques_z = {}
     
-    # Agrupadores para constraints rápidas (se evita iterar Múltiples veces el dominio completo)
-    cobertura_clases = collections.defaultdict(list)          # (seccion_id, curso_id) -> vars
-    unicidad_seccion = collections.defaultdict(list)          # (seccion_id, dia, turno, slot) -> vars
-    unicidad_profesor = collections.defaultdict(list)         # (profesor_id, dia, turno, slot) -> vars
-    limite_dia_profesor = collections.defaultdict(list)       # (profesor_id, dia) -> vars
-    limite_dia_categoria_sec = collections.defaultdict(list)  # (seccion_id, dia, categoria_id) -> vars
+    # Agrupadores
+    cobertura_curso = collections.defaultdict(list)          
+    unicidad_seccion = collections.defaultdict(list)          
+    unicidad_profesor = collections.defaultdict(list)         
+    limite_dia_profesor = collections.defaultdict(list)       
+    limite_dia_categoria_sec = collections.defaultdict(list)  
 
-    # 1. GENERACIÓN DEL ESPACIO BOOLEANO DE VARIABLES
+    # 1. GENERACIÓN DEL ESPACIO BOOLEANO POR BLOQUES (Contiguos y Únicos)
     for s_id, reqs in requerimientos_seccion.items():
         s_disp = disp_seccion.get(s_id, set())
         for c_id, horas in reqs.items():
             cat_id = cursos[c_id]["categoria_id"]
+            H = horas
             
             for p_id in profesores_por_curso.get(c_id, []):
                 p_disp = disp_profesor.get(p_id, set())
                 
                 for dia in dias:
                     for turno in turnos:
-                        # Condición estricta: slot válido sólo si AMBOS tienen disponibilidad
                         if (dia, turno) in s_disp and (dia, turno) in p_disp:
-                            for slot in range(slots_por_turno):
-                                variable_name = f"x_{s_id}_{c_id}_{p_id}_{dia}_{turno}_{slot}"
+                            # Iteramos los slots de 'Inicio' en el que el bloque de tamaño H cabe
+                            for start in range(slots_por_turno - H + 1):
+                                variable_name = f"z_{s_id}_{c_id}_{p_id}_{dia}_{turno}_{start}_H{H}"
                                 var = model.NewBoolVar(variable_name)
                                 
-                                x[(s_id, c_id, p_id, dia, turno, slot)] = var
+                                # Registramos la tupla decodificadora
+                                bloques_z[(s_id, c_id, p_id, dia, turno, start, H)] = var
                                 
-                                cobertura_clases[(s_id, c_id)].append(var)
-                                unicidad_seccion[(s_id, dia, turno, slot)].append(var)
-                                unicidad_profesor[(p_id, dia, turno, slot)].append(var)
-                                limite_dia_profesor[(p_id, dia)].append(var)
-                                limite_dia_categoria_sec[(s_id, dia, cat_id)].append(var)
+                                cobertura_curso[(s_id, c_id)].append(var)
+                                
+                                # El bloque ocupa simultáneamente H slots, los sumamos al conflicto
+                                for k in range(H):
+                                    slot_ocupado = start + k
+                                    unicidad_seccion[(s_id, dia, turno, slot_ocupado)].append(var)
+                                    unicidad_profesor[(p_id, dia, turno, slot_ocupado)].append(var)
+                                
+                                # Para los topes diarios, ponderamos por la duración del bloque en horas
+                                limite_dia_profesor[(p_id, dia)].append((var, H))
+                                limite_dia_categoria_sec[(s_id, dia, cat_id)].append((var, H))
 
     # 2. DECLARACIÓN DE RESTRICCIONES (CONSTRAINTS)
     
-    # [A] Cobertura exacta: Cumplir con las horas semanales por curso y sección
-    for (s_id, c_id), vars_list in cobertura_clases.items():
-        horas_requeridas = requerimientos_seccion[s_id][c_id]
-        model.Add(sum(vars_list) == horas_requeridas)
+    # [A] Cobertura estricta: Elegir exactamente un bloque-maestro
+    # Esto asignará el curso completo, de la duración esperada, con UN PROFESOR en UN DIA CONSECUTIVAMENTE.
+    for (s_id, c_id), vars_list in cobertura_curso.items():
+        # model.AddExactlyOne exige que matemáticamente una de estas variables sea 1, el resto 0.
+        model.AddExactlyOne(vars_list)
         
-    # [B] Conflicto Sección: Una sección sólo puede tener un curso/profesor por slot
+    # [B] Conflicto Sección por Slot Puntual
     for vars_list in unicidad_seccion.values():
         model.AddAtMostOne(vars_list)
         
-    # [C] Conflicto Profesor: Un profesor sólo puede dictar en un curso/sección por slot
+    # [C] Conflicto Profesor por Slot Puntual
     for vars_list in unicidad_profesor.values():
         model.AddAtMostOne(vars_list)
         
     # [D] Límite de carga diaria por Profesor
-    for (p_id, dia), vars_list in limite_dia_profesor.items():
-        max_horas = profesores_dict[p_id]["max_horas_dia"]
-        model.Add(sum(vars_list) <= max_horas)
+    # (Comentado temporalmente por petición del usuario para evitar INFEASIBLE experimental)
+    # for (p_id, dia), tuplas_var_H in limite_dia_profesor.items():
+    #     max_horas = profesores_dict[p_id]["max_horas_dia"]
+    #     model.Add(sum(var * h for var, h in tuplas_var_H) <= max_horas)
         
-    # [E] Límite de carga diaria por Categoría (para Secciones, ej: max 3h Matemáticas por día)
-    for (s_id, dia, cat_id), vars_list in limite_dia_categoria_sec.items():
+    # [E] Límite de carga diaria por Categoría
+    for (s_id, dia, cat_id), tuplas_var_H in limite_dia_categoria_sec.items():
         max_horas_cat = categorias[cat_id]["max_horas_dia"]
-        model.Add(sum(vars_list) <= max_horas_cat)
+        model.Add(sum(var * h for var, h in tuplas_var_H) <= max_horas_cat)
         
-    return model, x
+    return model, bloques_z
