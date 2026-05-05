@@ -3,8 +3,8 @@
     "estado": "OPTIMAL",
     "mensaje": "Se encontró la solución óptima del horario.",
     "estadisticas_solver": {
-      "tiempo_segundos": 2.1625174,
-      "ramas_exploradas": 5512,
+      "tiempo_segundos": 1.7262701,
+      "ramas_exploradas": 6596,
       "conflictos": 0
     }
   },
