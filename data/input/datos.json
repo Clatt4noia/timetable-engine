@@ -740,7 +740,10 @@
     {
       "id": "P008",
       "nombre": "Carmen Diaz",
-      "cursos_habilitados": [],
+      "cursos_habilitados": [
+        "ALG1",
+        "GEO1"
+      ],
       "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": [
@@ -762,6 +765,9 @@
         "Viernes": [
           "Mañana",
           "Tarde"
+        ],
+        "Sábado": [
+          "Mañana"
         ]
       }
     },
@@ -1229,7 +1235,9 @@
     {
       "id": "P024",
       "nombre": "Silvia Ramos",
-      "cursos_habilitados": [],
+      "cursos_habilitados": [
+        "RV1"
+      ],
       "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": [
@@ -1257,7 +1265,10 @@
     {
       "id": "P025",
       "nombre": "Oscar Huanca",
-      "cursos_habilitados": [],
+      "cursos_habilitados": [
+        "RM1",
+        "ALG1"
+      ],
       "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": [
@@ -1279,6 +1290,9 @@
         "Viernes": [
           "Mañana",
           "Tarde"
+        ],
+        "Sábado": [
+          "Mañana"
         ]
       }
     }
@@ -1634,8 +1648,8 @@
     "B_1A": "P005",
     "B_1B": "P005",
     "B_2": "P006",
-    "B_3": "P006",
-    "B_4": "P007",
-    "B_5": "P007"
+    "B_3": "P007",
+    "B_4": "P008",
+    "B_5": "P009"
   }
 }

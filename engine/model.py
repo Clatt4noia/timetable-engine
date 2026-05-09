@@ -105,7 +105,7 @@ def construir_modelo(datos_procesados: dict) -> tuple[cp_model.CpModel, dict]:
                                         var = model.NewBoolVar(variable_name)
                                         
                                         # Registramos la tupla decodificadora para exporter/solver
-                                        bloques_z[(s_id, c_id, p_id, dia, turno, start, sub_H)] = var
+                                        bloques_z[(s_id, c_id, p_id, dia, turno, start, sub_H, sub_idx)] = var
                                         
                                         z_vars_sub.append(var)
                                         z_vars_by_day[dia].append(var)
