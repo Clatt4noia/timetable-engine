@@ -54,12 +54,23 @@ def preprocesar(datos: dict) -> dict:
         disp_seccion[sec["id"]] = s_disp
 
     disp_profesor = {}
+    disp_profesor_slots = {}
     for p in profesores_lista:
         p_disp = set()
+        p_disp_slots = {}
         for dia, turnos in p.get("disponibilidad", {}).items():
-            for t in turnos:
-                p_disp.add((dia, t))
+            if isinstance(turnos, list):
+                # Formato antiguo: "Mañana", "Tarde"
+                for t in turnos:
+                    p_disp.add((dia, t))
+                    p_disp_slots[(dia, t)] = set([1, 2, 3, 4, 5, 6])
+            elif isinstance(turnos, dict):
+                # Formato matricial: {"Mañana": [1, 2, 3]}
+                for t, slots in turnos.items():
+                    p_disp.add((dia, t))
+                    p_disp_slots[(dia, t)] = set(slots)
         disp_profesor[p["id"]] = p_disp
+        disp_profesor_slots[p["id"]] = p_disp_slots
 
     # Estructura final consolidada lista para instanciar variables en CP-SAT
     return {
@@ -72,5 +83,6 @@ def preprocesar(datos: dict) -> dict:
         "requerimientos_seccion": requerimientos_seccion,
         "disp_seccion": disp_seccion,
         "disp_profesor": disp_profesor,
+        "disp_profesor_slots": disp_profesor_slots,
         "tutorias": tutorias,
     }
