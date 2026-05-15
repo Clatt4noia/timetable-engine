@@ -521,7 +521,6 @@
         "TRI1",
         "RM1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -621,7 +620,6 @@
         "LIT1",
         "RV1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -734,7 +732,6 @@
         "QUI1",
         "FE1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -835,7 +832,6 @@
         "HGE1",
         "ECO1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -936,7 +932,6 @@
         "FIL1",
         "DPC1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1046,7 +1041,6 @@
       "cursos_habilitados": [
         "ING1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1156,7 +1150,6 @@
       "cursos_habilitados": [
         "EFI1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1257,7 +1250,6 @@
         "ALG1",
         "GEO1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1368,7 +1360,6 @@
         "ALG1",
         "ARI1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1479,7 +1470,6 @@
         "GEO1",
         "TRI1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1580,7 +1570,6 @@
         "RM1",
         "ALG1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1681,7 +1670,6 @@
         "LIT1",
         "RV1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1792,7 +1780,6 @@
         "LIT1",
         "RV1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1893,7 +1880,6 @@
         "ANA1",
         "BIO1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -1994,7 +1980,6 @@
         "QUI1",
         "FE1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2095,7 +2080,6 @@
         "ANA1",
         "QUI1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2196,7 +2180,6 @@
         "HGE1",
         "ECO1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2297,7 +2280,6 @@
         "FIL1",
         "DPC1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2398,7 +2380,6 @@
         "HGE1",
         "FIL1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2498,7 +2479,6 @@
       "cursos_habilitados": [
         "ING1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2598,7 +2578,6 @@
       "cursos_habilitados": [
         "ING1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2698,7 +2677,6 @@
       "cursos_habilitados": [
         "EFI1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2798,7 +2776,6 @@
       "cursos_habilitados": [
         "EFI1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2898,7 +2875,6 @@
       "cursos_habilitados": [
         "RV1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
@@ -2999,7 +2975,6 @@
         "RM1",
         "ALG1"
       ],
-      "max_horas_dia": 6,
       "disponibilidad": {
         "Lunes": {
           "Mañana": [
