@@ -1,9 +1,4 @@
 def preprocesar(datos: dict) -> dict:
-    """
-    Transforma los datos validados en estructuras de búsqueda O(1) 
-    y precalcula combinaciones viables para inicializar variables
-    en CP-SAT con el menor costo posible.
-    """
     grados = {g["id"]: g for g in datos.get("grados", [])}
     cursos = {c["id"]: c for c in datos.get("cursos", [])}
     categorias = {c["id"]: c for c in datos.get("categorias", [])}
@@ -55,6 +50,7 @@ def preprocesar(datos: dict) -> dict:
 
     disp_profesor = {}
     disp_profesor_slots = {}
+    disp_profesor_pref_slots = {}
     for p in profesores_lista:
         p_disp = set()
         p_disp_slots = {}
@@ -65,12 +61,28 @@ def preprocesar(datos: dict) -> dict:
                     p_disp.add((dia, t))
                     p_disp_slots[(dia, t)] = set([1, 2, 3, 4, 5, 6])
             elif isinstance(turnos, dict):
-                # Formato matricial: {"Mañana": [1, 2, 3]}
-                for t, slots in turnos.items():
+                for t, content in turnos.items():
                     p_disp.add((dia, t))
-                    p_disp_slots[(dia, t)] = set(slots)
+                    if isinstance(content, list):
+                        # Formato antiguo matricial sin sede: {"Mañana": [1, 2, 3]}
+                        p_disp_slots[(dia, t)] = set(content)
+                    elif isinstance(content, dict):
+                        # Formato nuevo matricial con sede: {"Mañana": {"Sede A": [1, 2], "Sede B": [3, 4]}}
+                        for sede, slots in content.items():
+                            p_disp_slots[(dia, t, sede)] = set(slots)
         disp_profesor[p["id"]] = p_disp
         disp_profesor_slots[p["id"]] = p_disp_slots
+
+        # Procesar disponibilidad preferente
+        p_disp_pref_slots = {}
+        if "disponibilidad_preferente" in p:
+            for dia, turnos in p["disponibilidad_preferente"].items():
+                if isinstance(turnos, dict):
+                    for t, content in turnos.items():
+                        if isinstance(content, dict):
+                            for sede, slots in content.items():
+                                p_disp_pref_slots[(dia, t, sede)] = set(slots)
+        disp_profesor_pref_slots[p["id"]] = p_disp_pref_slots
 
     # Estructura final consolidada lista para instanciar variables en CP-SAT
     return {
@@ -84,5 +96,6 @@ def preprocesar(datos: dict) -> dict:
         "disp_seccion": disp_seccion,
         "disp_profesor": disp_profesor,
         "disp_profesor_slots": disp_profesor_slots,
+        "disp_profesor_pref_slots": disp_profesor_pref_slots,
         "tutorias": tutorias,
     }

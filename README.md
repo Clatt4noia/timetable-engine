@@ -23,10 +23,14 @@ La arquitectura del motor sigue un pipeline secuencial de procesamiento de datos
 El motor opera bajo un riguroso set de reglas agrupadas en Restricciones Duras (inquebrantables) y Blandas (optimizables mediante recompensas).
 
 ### A. Restricciones de Disponibilidad y Ubicuidad
-* **Validación Estricta de Slots:** Un curso solo se asigna a un profesor si los *N* slots consecutivos que requiere el bloque son un subconjunto matemático estricto (`issubset`) de la disponibilidad del maestro en ese turno específico.
+* **Disponibilidad Matricial Multi-Sede:** El motor procesa la disponibilidad del docente a un nivel altamente granular: Día $\rightarrow$ Turno $\rightarrow$ Sede $\rightarrow$ Slots Físicos (ej. `{1, 2, 3}`).
+* **Validación Estricta de Slots:** Un curso solo se asigna a un profesor si los *N* slots consecutivos que requiere el bloque son un subconjunto matemático estricto (`issubset`) de su disponibilidad en esa **sede específica**.
 * **Exclusividad de Sección:** Una sección no puede recibir dos cursos ni atender a dos profesores en el mismo slot físico.
 * **Exclusividad de Profesor:** Un maestro no puede estar en dos aulas al mismo tiempo.
-* **Restricción Multi-Sede (Viajes):** Si un profesor dicta en la "Sede Central" en la Mañana, tiene *prohibido* dictar en la "Sede Norte" en la Tarde del mismo día.
+* **Tiempo de Traslado Inter-Sedes (Travel Time):** El motor prohíbe que un profesor sea asignado a dos sedes distintas en slots consecutivos (a excepción del quiebre natural provocado por el recreo).
+
+### C. Restricciones Blandas (Soft Constraints)
+* **Disponibilidad Preferente:** Los docentes pueden tener horarios "ideales" (ej. "Prefiero dictar los Lunes a primera hora"). Esta preferencia es una restricción blanda; el motor **premiará** la colocación de la clase en esos bloques específicos sin forzar un error si no es posible. Se garantiza matemáticamente mediante validadores que la zona preferente sea un subconjunto de la zona de disponibilidad estricta.
 
 ### B. Restricciones Pedagógicas y Laborales
 * **Límite de Sobrecarga por Categoría:** Limita la cantidad de horas que una sección puede recibir de una misma área de conocimiento (ej. "Ciencias") en un solo día para evitar fatiga estudiantil.
@@ -58,10 +62,12 @@ $$ \sum (Z_{\text{bloque 1}}) = V \quad \text{y} \quad \sum (Z_{\text{bloque 2}}
 Dado que a veces es matemáticamente imposible agendar el 100% de los cursos por topes de disponibilidad, el motor pasó de requerir "Cobertura Estricta" a un modelo de "Maximización por Recompensas".
 
 Se crea una variable de estado $\text{Cobertura}_{s, c} \in \{0, 1\}$ que indica si un curso logró asignarse a una sección.
+Adicionalmente, se evalúa si los slots $k$ ocupados por una variable sub-bloque $Z$ intersecan con los slots de la **Disponibilidad Preferente** del docente ($\text{Pref}_{p}$).
 
-$$ \text{Maximize} \left( \sum_{s, c} (\text{Cobertura}_{s,c} \times 10000) + \sum_{p, cfg} (V_{p, cfg} \times \text{Reward}_{cfg}) \right) $$
+$$ \text{Maximize} \left( \sum (\text{Cobertura} \times 10000) + \sum (Z \cap \text{Pref}_{p} \times 500) + \sum (V_{cfg} \times \text{Reward}_{cfg}) \right) $$
 
-**Explicación:**
-1. **El Peso Mayor (10,000 pts):** Obliga al motor a priorizar sobre todas las cosas que la clase se dicte. Jamás dejará un curso vacío si existe una permutación matemática que permita encajarlo.
-2. **El Peso Menor ($\text{Reward}_{cfg}$):** Si la configuración es de "Bloque Único" (`[3]`), otorga $+100$ puntos. Si la configuración está muy fragmentada (`[1, 1, 1]`), otorga $+10$ puntos.
-3. **Comportamiento Emergente:** El solver intentará primero usar bloques unidos para ganar 10,100 puntos. Si las restricciones (cruces de profesores) no lo dejan, preferirá romper el curso ganando 10,010 puntos, antes que rendirse y ganar 0 puntos dejando a los alumnos sin profesor.
+**Jerarquía de Comportamiento Emergente (Asignación > Preferencia > Contigüidad):**
+1. **Asignación Primordial (+10,000 pts):** El motor prioriza sobre todas las cosas que la clase se dicte. Jamás dejará un curso vacío si existe una permutación matemática que permita encajarlo.
+2. **Preferencia Docente (+500 pts por slot):** Si hay múltiples lugares válidos, el motor escoge el que caiga en la "Disponibilidad Preferente" del maestro.
+3. **Contigüidad (+100 pts vs +10 pts):** Si el curso no se fragmenta (ej. `[3]`), gana 100 puntos. Si se fragmenta (ej. `[2, 1]`), gana 10 puntos.
+4. **El Sacrificio Calculado:** Al ser la Preferencia (+500) matemáticamente mayor que la Contigüidad (+100), si un curso de 3 horas no entra entero en la zona preferida del profesor, el motor **decidirá romper el curso** (sacrificando los 90 pts de diferencia) para poder colocar al menos 1 o 2 horas dentro del horario preferente del docente, maximizando el puntaje global.

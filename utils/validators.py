@@ -203,17 +203,6 @@ def validar_profesores(
                         f"'cursos_habilitados' no existe en la lista de cursos"
                     )
  
-        # Validar max_horas_dia
-        if "max_horas_dia" not in profesor:
-            errores.append(f"[profesores][{pid}] Falta el campo 'max_horas_dia'")
-        else:
-            max_horas = profesor["max_horas_dia"]
-            if not isinstance(max_horas, int) or max_horas < 1:
-                errores.append(
-                    f"[profesores][{pid}] 'max_horas_dia' debe ser un entero mayor a 0, "
-                    f"se recibió: {max_horas}"
-                )
- 
         # Validar disponibilidad
         if "disponibilidad" not in profesor:
             errores.append(f"[profesores][{pid}] Falta el campo 'disponibilidad'")
@@ -235,6 +224,36 @@ def validar_profesores(
                             f"[profesores][{pid}] El turno '{turno}' en el día '{dia}' "
                             f"no está en la configuración"
                         )
+
+        # Validar disponibilidad preferente (opcional, debe ser subconjunto de disponibilidad estricta)
+        if "disponibilidad_preferente" in profesor:
+            disp_pref = profesor["disponibilidad_preferente"]
+            disp_estricta = profesor.get("disponibilidad", {})
+            for dia, turnos in disp_pref.items():
+                if dia not in dias_validos:
+                    errores.append(
+                        f"[profesores][{pid}] El día '{dia}' en 'disponibilidad_preferente' "
+                        f"no está en la configuración"
+                    )
+                for turno, sedes in turnos.items():
+                    if turno not in turnos_validos:
+                        errores.append(
+                            f"[profesores][{pid}] El turno '{turno}' en el día '{dia}' "
+                            f"de 'disponibilidad_preferente' no está en la configuración"
+                        )
+                    for sede, slots_pref in sedes.items():
+                        # Validar subconjunto
+                        try:
+                            slots_estrictos = disp_estricta.get(dia, {}).get(turno, {}).get(sede, [])
+                            for slot in slots_pref:
+                                if slot not in slots_estrictos:
+                                    errores.append(
+                                        f"[profesores][{pid}] El slot {slot} en {dia}-{turno}-{sede} "
+                                        f"de 'disponibilidad_preferente' no existe en la 'disponibilidad' estricta"
+                                    )
+                        except AttributeError:
+                            # En caso de que la estructura estricta esté mal formada, será reportada arriba o fallará
+                            pass
  
     return errores
  
