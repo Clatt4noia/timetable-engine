@@ -28,6 +28,7 @@ El motor opera bajo un riguroso set de reglas agrupadas en Restricciones Duras (
 * **Exclusividad de Sección:** Una sección no puede recibir dos cursos ni atender a dos profesores en el mismo slot físico.
 * **Exclusividad de Profesor:** Un maestro no puede estar en dos aulas al mismo tiempo.
 * **Tiempo de Traslado Inter-Sedes (Travel Time):** El motor prohíbe que un profesor sea asignado a dos sedes distintas en slots consecutivos (a excepción del quiebre natural provocado por el recreo).
+* **Exclusividad de Espacio Físico (Recursos Compartidos):** Si un curso es configurado con `"requiere_espacio_unico": true` (ej. Educación Física, Química), el motor garantiza matemáticamente que dos secciones de la misma Sede no tomarán este curso simultáneamente, previniendo choques en el uso de la cancha, laboratorio o sala de cómputo.
 
 ### C. Restricciones Blandas (Soft Constraints)
 * **Disponibilidad Preferente:** Los docentes pueden tener horarios "ideales" (ej. "Prefiero dictar los Lunes a primera hora"). Esta preferencia es una restricción blanda; el motor **premiará** la colocación de la clase en esos bloques específicos sin forzar un error si no es posible. Se garantiza matemáticamente mediante validadores que la zona preferente sea un subconjunto de la zona de disponibilidad estricta.
