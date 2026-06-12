@@ -215,10 +215,6 @@ def construir_modelo(datos_procesados: dict) -> tuple[cp_model.CpModel, dict]:
             for dia in dias_usados:
                 for turno in turnos:
                     for k in range(max_slots_global - 1):
-                        # Excepción solicitada: El recreo existe entre el slot 3 y 4 (índices 2 y 3).
-                        if k == 2:
-                            continue
-                            
                         for sede1 in sedes_disponibles:
                             for sede2 in sedes_disponibles:
                                 if sede1 != sede2:
